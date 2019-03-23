@@ -5,13 +5,13 @@ require 'mysql2-cs-bind'
 require 'rack/contrib'
 require 'json'
 require 'pry'
+require 'jwt'
+# require 'sinatra/json'
+
 
 
 use Rack::PostBodyContentTypeParser
 
-get '/' do
-  erb :index
-end
 
 def db
   @db ||= Mysql2::Client.new(
@@ -25,50 +25,65 @@ end
 
 post "/api/v1/users" do
 
-  register_data = params.to_json
-  hash = JSON.parse(register_data)
+  # paramsで受け取ったら、なぜかハッシュ化してる。
+  register_data = params
 
-  p hash
-
-  if hash['name'] == ""
+  if register_data['name'] == ""
     response = {"status": 400, message: "nameを入れてください"}
 
-  elsif hash['email'] == ''
+  elsif register_data['email'] == ''
     response = {"status": 400, message: "emailを入れてください"}
 
-  elsif hash['password'] == ''
+  elsif register_data['password'] == ''
     response = {"status": 400, message: "passwordを入れてください"}
 
   else
 
-    name = hash['name']
-    email = hash['email']
-    password = hash['password']
+    name = register_data['name']
+    email = register_data['email']
+    password = register_data['password']
     db.xquery('insert into User values( null, ?, null , ?, ?)', name, email, password)
     response = {"status": 200, message: "ユーザー登録が完了しました"}
   end
 
   response.to_json
+  # p '--------------------------------'
 
 end
 
 
 post '/api/v1/users/login' do
 
-  register_data = params.to_json
-  hash = JSON.parse(register_data)
+  login_data = params
 
 
-  # email = hash['email']
-  # password = hash['password']
-
-  if hash['email'] == ""
+  if login_data['email'] == ""
     response = {"status": 400, message: "emailを入れてください"}
 
-  elsif hash['password'] == ''
+  elsif login_data['password'] == ''
     response = {"status": 400, message: "passwordを入れてください"}
 
   else
+    
+    email = login_data['email']
+    password = login_data['password']
+
+    user = db.xquery("select * from User where email = ? and password = ?", email, password).to_a.first
+
+    if user
+      response = {"status": 400, message: "このユーザーは既に存在しています"}
+
+    else
+      # privatekey生成
+      rsa_private = OpenSSL::PKey::RSA.generate(2048)
+      login_data_json = login_data.to_json
+      p login_data_json
+
+      # login_dataを暗号化して、tokenにいれる。
+      token = JWT.encode(login_data_json, rsa_private, 'RS256')
+
+      response = {"status": 200, message: "ログインしました" ,"token": token}
+    end
 
   end
 
@@ -77,4 +92,10 @@ end
 
 
 
+
+
+# tokenをlogin_dataに戻す
+# devode_token = JWT.decode(token, rsa_private, true, { algorithm: 'RS256' })
+#
+# p devode_token
 
