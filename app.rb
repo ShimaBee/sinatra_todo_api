@@ -6,36 +6,12 @@ require 'rack/contrib'
 require 'json'
 require 'pry'
 require 'jwt'
-# require 'sinatra/json'
 
 enable :sessions
 
 use Rack::PostBodyContentTypeParser
 
-
-# module JWT
-#   def cretae_private_key
-#     @rsa_private = OpenSSL::PKey::RSA.generate(2048)
-#
-#   end
-#
-#   def encode_jwt
-#     token = JWT.encode(login_data_json, @rsa_private, 'RS256')
-#   end
-#
-#   def decode_jwt
-#     devode_token = JWT.decode(token, @rsa_private, true, { algorithm: 'RS256' })
-#   end
-#
-# end
-
-
-
-def cretare_privatekey
-  # privatekey生成
-  @rsa_private = OpenSSL::PKey::RSA.generate(2048)
-end
-
+$rsa_private = OpenSSL::PKey::RSA.generate(2048)
 
 def db
   @db ||= Mysql2::Client.new(
@@ -107,15 +83,14 @@ post '/api/v1/users/login' do
       status 400
 
     else
-      cretare_privatekey
       # hashをjsonに戻す
       login_data_json = login_data.to_json
       # login_dataを暗号化して、tokenにいれる。
-      token = JWT.encode(login_data_json, @rsa_private, 'RS256')
+      token = JWT.encode(login_data_json, $rsa_private, 'RS256')
       p token
 
       p '----------------------------------'
-      devode_token = JWT.decode(token, @rsa_private, true, { algorithm: 'RS256' })
+      devode_token = JWT.decode(token, $rsa_private, true, { algorithm: 'RS256' })
 
       p devode_token
       response = {"status": 200, message: "ログインしました" ,"token": token}
@@ -123,14 +98,11 @@ post '/api/v1/users/login' do
     end
 
   end
-
-  @@rsa_private = @rsa_private
   response.to_json
 
 end
 
 get '/api/v1/users' do
-
   users_show = db.xquery("select * from User")
   users_show_array =  users_show.to_a
   users_show_array.to_json
@@ -144,10 +116,9 @@ get '/api/v1/users/:id' do
 
 end
 
-
 get '/api/v1/todos' do
   token = @env['HTTP_AUTHORIZATION']
-  devode_token = JWT.decode(token, @@rsa_private, true, { algorithm: 'RS256' })
+  devode_token = JWT.decode(token, $rsa_private, true, { algorithm: 'RS256' })
   hash = JSON.parse(devode_token[0])
   email = hash['email']
   password = hash['password']
@@ -156,4 +127,5 @@ get '/api/v1/todos' do
   show_user_todos.to_json
 
 end
+
 
