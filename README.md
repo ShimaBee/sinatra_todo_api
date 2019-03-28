@@ -40,3 +40,19 @@ $ curl --request GET \
 --url http://localhost:4567/api/todos \
 --header 'Authorization: tokenxxxxxxxxxxxxxxxx' --header 'Content-Type: application/json'
 ```
+
+## 自分のtask詳細
+```
+$ curl --request POST \
+--url http://localhost:4567/api/todos/1 \
+--header 'Authorization: tokenxxxxxxxxxxxxxxxx' --header 'Content-Type: application/json'
+```
+
+## task作成
+```
+curl \             
+-F title=たすく \
+-F description=テスト説明 \
+http://localhost:4567/api/todos \
+-H 'Authorization: tokenxxxxxxxxxxxxxxx
+```
