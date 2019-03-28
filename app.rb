@@ -87,12 +87,7 @@ post '/api/users/login' do
       login_data_json = login_data.to_json
       # login_dataを暗号化して、tokenにいれる。
       token = JWT.encode(login_data_json, $rsa_private, 'RS256')
-      p token
-
-      p '----------------------------------'
       devode_token = JWT.decode(token, $rsa_private, true, { algorithm: 'RS256' })
-
-      p devode_token
       response = {"status": 200, message: "ログインしました" ,"token": token}
 
     end
@@ -117,7 +112,6 @@ get '/api/users/:id' do
 end
 
 get '/api/todos' do
- 
   token = @env['HTTP_AUTHORIZATION']
   devode_token = JWT.decode(token, $rsa_private, true, { algorithm: 'RS256' })
   hash = JSON.parse(devode_token[0])
@@ -144,4 +138,5 @@ get '/api/todos/:id' do
       status 400 
   end
   response.to_json
+
 end
