@@ -132,7 +132,7 @@ get '/api/todos/:id' do
   access_user = db.xquery("select * from User where email = ? and password = ?", email, password).to_a.first
   show_user = db.xquery("select * from User where id = ?", params[:id]).to_a.first
   if access_user == show_user
-    response = {"status": 200, message: "見れた"}
+    show_todo_detail = db.xquery("select * from Todo where id = ?",params[:id]).to_a
   elsif
     response = {"status": 400, message: "存在しないユーザーです"}
       status 400 
