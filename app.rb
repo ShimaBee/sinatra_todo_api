@@ -22,7 +22,7 @@ def db
   )
 end
 
-post "/api/v1/users" do
+post "/api/users" do
   # paramsで受け取ったら、ハッシュ化する。
   register_data = params
 
@@ -61,7 +61,7 @@ post "/api/v1/users" do
 end
 
 
-post '/api/v1/users/login' do
+post '/api/users/login' do
 
   login_data = params
 
@@ -102,21 +102,21 @@ post '/api/v1/users/login' do
 
 end
 
-get '/api/v1/users' do
+get '/api/users' do
   users_show = db.xquery("select * from User")
   users_show_array =  users_show.to_a
   users_show_array.to_json
 
 end
 
-get '/api/v1/users/:id' do
+get '/api/users/:id' do
   user_ditale = db.xquery("select * from User where id = ?", params[:id]).to_a.first
   user_ditale_array =  user_ditale
   user_ditale_array.to_json
 
 end
 
-get '/api/v1/todos' do
+get '/api/todos' do
  
   token = @env['HTTP_AUTHORIZATION']
   devode_token = JWT.decode(token, $rsa_private, true, { algorithm: 'RS256' })
@@ -129,7 +129,7 @@ get '/api/v1/todos' do
 
 end
 
-get '/api/v1/todos/:id' do
+get '/api/todos/:id' do
   token = @env['HTTP_AUTHORIZATION']
   devode_token = JWT.decode(token, $rsa_private, true, { algorithm: 'RS256' })
   hash = JSON.parse(devode_token[0])
