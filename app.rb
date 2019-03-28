@@ -11,7 +11,7 @@ enable :sessions
 
 use Rack::PostBodyContentTypeParser
 
-$rsa_private = OpenSSL::PKey::RSA.generate(2048)
+$rsa_private = OpenSSL::PKey::RSA.generate(500)
 
 def db
   @db ||= Mysql2::Client.new(
@@ -23,7 +23,7 @@ def db
 end
 
 post "/api/v1/users" do
-  # paramsで受け取ったら、なぜかハッシュ化してる。
+  # paramsで受け取ったら、ハッシュ化する。
   register_data = params
 
   if register_data['name'] == ""
@@ -117,6 +117,7 @@ get '/api/v1/users/:id' do
 end
 
 get '/api/v1/todos' do
+ 
   token = @env['HTTP_AUTHORIZATION']
   devode_token = JWT.decode(token, $rsa_private, true, { algorithm: 'RS256' })
   hash = JSON.parse(devode_token[0])
@@ -128,4 +129,19 @@ get '/api/v1/todos' do
 
 end
 
-
+get '/api/v1/todos/:id' do
+  token = @env['HTTP_AUTHORIZATION']
+  devode_token = JWT.decode(token, $rsa_private, true, { algorithm: 'RS256' })
+  hash = JSON.parse(devode_token[0])
+  email = hash['email']
+  password = hash['password']
+  access_user = db.xquery("select * from User where email = ? and password = ?", email, password).to_a.first
+  show_user = db.xquery("select * from User where id = ?", params[:id]).to_a.first
+  if access_user == show_user
+    response = {"status": 200, message: "見れた"}
+  elsif
+    response = {"status": 400, message: "存在しないユーザーです"}
+      status 400 
+  end
+  response.to_json
+end
