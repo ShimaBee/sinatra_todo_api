@@ -43,7 +43,7 @@ $ curl --request GET \
 
 ## 自分のtask詳細
 ```
-$ curl --request POST \
+$ curl --request GET \
 --url http://localhost:4567/api/todos/1 \
 --header 'Authorization: tokenxxxxxxxxxxxxxxxx' --header 'Content-Type: application/json'
 ```
